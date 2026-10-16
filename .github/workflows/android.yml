@@ -11,6 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Show repo files
+        run: ls -la
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -24,14 +27,16 @@ jobs:
         run: npm install
 
       - name: Build web folder
-        run: node scripts/prepare-web.js
+        run: node prepare-web.js
 
       - name: Create Android project
         run: npx cap add android
 
       - name: Generate app icons
         continue-on-error: true
-        run: npx capacitor-assets generate --android --iconBackgroundColor '#1c0b22' --iconBackgroundColorDark '#1c0b22' --splashBackgroundColor '#1c0b22' --splashBackgroundColorDark '#1c0b22'
+        run: |
+          mkdir -p resources && cp -f icon.png resources/icon.png
+          npx capacitor-assets generate --android --iconBackgroundColor '#1c0b22' --iconBackgroundColorDark '#1c0b22' --splashBackgroundColor '#1c0b22' --splashBackgroundColorDark '#1c0b22'
 
       - name: Sync web files into Android project
         run: npx cap sync android
