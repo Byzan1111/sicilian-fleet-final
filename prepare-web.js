@@ -50,11 +50,26 @@ html = html.includes('</body>')
 
 fs.writeFileSync(path.join(www, 'index.html'), html);
 
-// ---- audio (optional) ----
-const audio = path.join(root, 'audio');
-if (fs.existsSync(audio)) {
-  fs.cpSync(audio, path.join(www, 'audio'), { recursive: true });
-  const n = fs.readdirSync(path.join(www, 'audio')).filter(f => /\.(mp3|ogg|m4a|wav)$/i.test(f)).length;
-  console.log(`Audio files bundled: ${n}`);
+// ---- audio ----
+// Music/sfx can sit in an audio/ folder OR loose in the repo root (e.g. title.mp3, battle.mp3, sfx_hit.mp3).
+const AUDIO_RE = /\.(mp3|ogg|m4a|wav)$/i;
+fs.mkdirSync(path.join(www, 'audio'), { recursive: true });
+const audioDir = path.join(root, 'audio');
+if (fs.existsSync(audioDir)) fs.cpSync(audioDir, path.join(www, 'audio'), { recursive: true });
+for (const f of fs.readdirSync(root)) {
+  if (AUDIO_RE.test(f) && fs.statSync(path.join(root, f)).isFile()) {
+    fs.copyFileSync(path.join(root, f), path.join(www, 'audio', f));
+  }
 }
+const tracks = fs.readdirSync(path.join(www, 'audio')).filter(f => AUDIO_RE.test(f));
+const mb = tracks.reduce((a, f) => a + fs.statSync(path.join(www, 'audio', f)).size, 0) / 1048576;
+console.log(`Audio files bundled: ${tracks.length} (${mb.toFixed(1)} MB)`);
+
+// ---- tiny build stamp (bottom-left, faint) so you can see which build/audio is installed ----
+const stamp = `build ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC \u00b7 ${tracks.length} audio files`;
+let out = fs.readFileSync(path.join(www, 'index.html'), 'utf8');
+out = out.includes('</body>')
+  ? out.replace('</body>', `<div style="position:fixed;left:6px;bottom:2px;z-index:5;font:9px sans-serif;color:#d6a93b;opacity:.45;pointer-events:none">${stamp}</div></body>`)
+  : out;
+fs.writeFileSync(path.join(www, 'index.html'), out);
 console.log('www/ ready.');
