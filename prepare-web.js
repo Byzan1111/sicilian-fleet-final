@@ -3,9 +3,10 @@
 // - bundles the two fonts from npm so the game looks right offline
 // - wires the Android Back button (android.js)
 const fs = require('fs');
+const ANDROID_JS = "// Wires the Android hardware Back button to the game (window.sfBack is defined in index.html).\n(function () {\n  try {\n    var cap = window.Capacitor;\n    if (!cap || !cap.Plugins || !cap.Plugins.App) return;\n    var App = cap.Plugins.App;\n    App.addListener('backButton', function () {\n      var r = 'exit';\n      try { r = window.sfBack ? window.sfBack() : 'exit'; } catch (e) {}\n      if (r === 'exit') App.exitApp();\n    });\n  } catch (e) {}\n})();\n";
 const path = require('path');
 
-const root = path.join(__dirname, '..');
+const root = __dirname;
 const www = path.join(root, 'www');
 fs.rmSync(www, { recursive: true, force: true });
 fs.mkdirSync(path.join(www, 'fonts'), { recursive: true });
@@ -42,7 +43,7 @@ if (latinOk === 2) {
 }
 
 // ---- Android back button ----
-fs.copyFileSync(path.join(__dirname, 'android.js'), path.join(www, 'android.js'));
+fs.writeFileSync(path.join(www, 'android.js'), ANDROID_JS);
 html = html.includes('</body>')
   ? html.replace('</body>', '<script src="android.js"></script></body>')
   : html + '\n<script src="android.js"></script>\n';
