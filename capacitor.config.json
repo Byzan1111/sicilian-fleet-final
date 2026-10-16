@@ -1,0 +1,9 @@
+{
+  "appId": "com.sicilianfleet.app",
+  "appName": "The Sicilian Fleet",
+  "webDir": "www",
+  "backgroundColor": "#1c0b22",
+  "android": {
+    "adjustMarginsForEdgeToEdge": "auto"
+  }
+}
